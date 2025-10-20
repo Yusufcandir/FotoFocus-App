@@ -1,6 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:fotofocus/screens/learn_screen.dart';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:fotofocus/screens/challenge_screen.dart';
 
 class ChallengeScreen extends StatefulWidget {
   const ChallengeScreen({super.key});
@@ -21,7 +17,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   // --- The Upload Function ---
   Future<void> _uploadPhoto() async {
     final picker = ImagePicker();
-    // 1. Let the user pick an image
+    // 1. Let the user pick an image from their gallery
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) {
@@ -29,7 +25,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       return;
     }
 
-    // Show a loading dialog
+    // Show a loading dialog while uploading
     if (!mounted) return;
     showDialog(
       context: context,
@@ -38,36 +34,36 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
 
     try {
-      // 2. Create a unique file path
+      // 2. Create a unique file path for the image
       final String fileName =
           '${FirebaseAuth.instance.currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final File imageFile = File(image.path);
 
-      // 3. Upload to Firebase Storage
+      // 3. Upload the file to Firebase Storage
       final Reference storageRef = FirebaseStorage.instance
           .ref()
           .child('submissions')
           .child(fileName);
       await storageRef.putFile(imageFile);
 
-      // 4. Get the Download URL
+      // 4. Get the public Download URL for the image
       final String downloadURL = await storageRef.getDownloadURL();
 
-      // 5. Save the URL to Firestore
+      // 5. Save the image information to Firestore
       await FirebaseFirestore.instance.collection('submissions').add({
         'imageURL': downloadURL,
         'userID': FirebaseAuth.instance.currentUser!.uid,
-        'timestamp': FieldValue.serverTimestamp(),
+        'timestamp': FieldValue.serverTimestamp(), // For ordering
       });
 
-      // 6. Dismiss loading dialog
+      // 6. Dismiss the loading dialog
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      // 6. Dismiss loading dialog and show error
+      // 6. Dismiss the loading dialog and show an error message
       if (mounted) Navigator.of(context).pop();
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to upload: $e')));
+      ).showSnackBar(SnackBar(content: Text('Failed to upload photo: $e')));
     }
   }
 
@@ -83,7 +79,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         // Listen to the new 'submissions' collection
         stream: FirebaseFirestore.instance
             .collection('submissions')
-            .orderBy('timestamp', descending: true) // Show newest first
+            .orderBy('timestamp', descending: true) // Show newest photos first
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -97,8 +93,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
           final documents = snapshot.data!.docs;
 
-          // Use a GridView to show photos
+          // Use a GridView to show photos in a grid
           return GridView.builder(
+            padding: const EdgeInsets.all(4),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2, // 2 photos per row
               crossAxisSpacing: 4,
@@ -112,80 +109,25 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               return Image.network(
                 imageURL,
                 fit: BoxFit.cover, // Make the image fill the grid square
-                // Show a loading spinner while the image downloads
+                // Show a loading spinner while each image downloads
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;
                   return const Center(child: CircularProgressIndicator());
+                },
+                // Show an error icon if an image fails to load
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.error);
                 },
               );
             },
           );
         },
       ),
-      // Add a Floating Action Button to upload
+      // Add a Floating Action Button to let users upload photos
       floatingActionButton: FloatingActionButton(
         onPressed: _uploadPhoto,
         tooltip: 'Add Photo',
         child: const Icon(Icons.add_a_photo),
-      ),
-    );
-  }
-}
-
-// ---
-
-// Convert HomeScreen to a StatefulWidget to manage the tabs
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0; // Tracks which tab is currently selected
-
-  // The list of screens to show
-  static const List<Widget> _widgetOptions = <Widget>[
-    ChallengeScreen(), // Tab 0
-    LearnScreen(), // Tab 1
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('FotoFocus'),
-        actions: [
-          // Logout Button
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-            },
-          ),
-        ],
-      ),
-      // Show the currently selected screen
-      body: _widgetOptions.elementAt(_selectedIndex),
-
-      // --- Add the Bottom Navigation Bar ---
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            label: 'Challenges',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Learn'),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
       ),
     );
   }
