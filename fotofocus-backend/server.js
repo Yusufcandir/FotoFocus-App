@@ -10,7 +10,6 @@ import { PrismaClient } from "@prisma/client";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import "dotenv/config";
-import multer from "multer";
 import { uploadBufferToCloudinary } from "./utils/cloudinary.js";
 
 
