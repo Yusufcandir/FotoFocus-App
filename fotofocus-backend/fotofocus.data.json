@@ -1,0 +1,113 @@
+{
+  "nextUserId": 2,
+  "nextChallengeId": 19,
+  "nextPhotoId": 10,
+  "nextCommentId": 7,
+  "users": [
+    [
+      "yusuf@gmail.com",
+      {
+        "id": 1,
+        "email": "yusuf@gmail.com",
+        "passwordHash": "$2a$10$FgD0IyxmTm77PYYAYh9YIeLHCGXaNiExaGIiUAslSSQ4sujjxfThe",
+        "avatarUrl": "/uploads/photo_1766438974334.jpg"
+      }
+    ]
+  ],
+  "photos": [
+    {
+      "id": 1,
+      "challengeId": 1,
+      "imageUrl": "https://picsum.photos/seed/g1/900/900",
+      "caption": "Golden hour in the city",
+      "userEmail": "demo@fotofocus.dev",
+      "createdAt": "2025-12-21T10:10:00Z",
+      "avgRating": 4.3,
+      "ratingCount": 12
+    },
+    {
+      "id": 2,
+      "challengeId": 1,
+      "imageUrl": "https://picsum.photos/seed/g2/900/900",
+      "caption": "Warm tones & long shadows",
+      "userEmail": "demo@fotofocus.dev",
+      "createdAt": "2025-12-21T10:15:00Z",
+      "avgRating": 4.51,
+      "ratingCount": 9
+    },
+    {
+      "id": 3,
+      "challengeId": 2,
+      "imageUrl": "https://picsum.photos/seed/s1/900/900",
+      "caption": "Street moment",
+      "userEmail": "demo@fotofocus.dev",
+      "createdAt": "2025-12-21T09:20:00Z",
+      "avgRating": 4.1,
+      "ratingCount": 21
+    },
+    {
+      "id": 4,
+      "challengeId": 2,
+      "imageUrl": "https://picsum.photos/seed/s2/900/900",
+      "caption": "Crosswalk story",
+      "userEmail": "demo@fotofocus.dev",
+      "createdAt": "2025-12-21T09:40:00Z",
+      "avgRating": 3.9,
+      "ratingCount": 5
+    },
+    {
+      "id": 9,
+      "challengeId": 2,
+      "imageUrl": "/uploads/challenge_1766430656894_scaled_49d0759b-d7ef-4f0b-befb-0818a56e8082-1_all_6.jpg",
+      "caption": "a",
+      "createdAt": "2025-12-22T19:10:57.176Z",
+      "ratings": [],
+      "comments": [],
+      "ratingCount": 3,
+      "avgRating": 1
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "photoId": 1,
+      "userEmail": "demo@fotofocus.dev",
+      "text": "Nice light! Great mood.",
+      "createdAt": "2025-12-21T10:20:00Z"
+    },
+    {
+      "id": 2,
+      "photoId": 2,
+      "userEmail": "demo@fotofocus.dev",
+      "text": "Beautiful colors.",
+      "createdAt": "2025-12-21T10:25:00Z"
+    },
+    {
+      "id": 3,
+      "photoId": 2,
+      "userEmail": "yusuf@gmail.com",
+      "text": "hi",
+      "createdAt": "2025-12-21T16:59:45.453Z"
+    },
+    {
+      "id": 5,
+      "photoId": 9,
+      "userEmail": "yusuf@gmail.com",
+      "text": "a",
+      "createdAt": "2025-12-22T19:11:15.213Z"
+    },
+    {
+      "id": 6,
+      "photoId": 9,
+      "userEmail": "yusuf@gmail.com",
+      "text": "h",
+      "createdAt": "2025-12-22T21:29:23.672Z"
+    }
+  ],
+  "userRatings": [
+    [
+      0,
+      1
+    ]
+  ]
+}

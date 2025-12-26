@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  email        String @unique
+  passwordHash String
+
+  name      String?
+  avatarUrl String?
+
+  challenges Challenge[]
+  photos     Photo[]
+  comments   Comment[]
+  ratings    Rating[]
+
+  following Follow[] @relation("UserFollowing")
+  followers Follow[] @relation("UserFollowers")
+
+  posts        Post[]
+  postComments PostComment[]
+  postLikes    PostLike[]
+  passwordResetTokens PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+}
+
+model Challenge {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  coverUrl    String?
+  creatorId   Int
+  creator     User     @relation(fields: [creatorId], references: [id],onDelete: Cascade)
+  photos      Photo[]
+  createdAt   DateTime @default(now())
+}
+
+model Photo {
+  id          Int      @id @default(autoincrement())
+  challengeId Int
+  userId      Int
+  imageUrl    String
+  caption     String?
+  createdAt   DateTime @default(now())
+
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  ratings   Rating[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  photoId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  parentId Int?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id],onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  photo Photo @relation(fields: [photoId], references: [id],onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id],onDelete: Cascade)
+
+  @@index([photoId])
+  @@index([parentId])
+}
+
+model Rating {
+  id      Int @id @default(autoincrement())
+  value   Int
+  userId  Int
+  photoId Int
+
+  user  User  @relation(fields: [userId], references: [id],onDelete: Cascade)
+  photo Photo @relation(fields: [photoId], references: [id],onDelete: Cascade)
+
+  @@unique([userId, photoId]) // one rating per user per photo
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  text      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  user     User          @relation(fields: [userId], references: [id],onDelete: Cascade)
+  comments PostComment[]
+  likes    PostLike[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PostComment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  text      String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostLike {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model Follow {
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  title     String
+  body      String
+  imageUrl  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([order])
+}
+
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PendingRegistration {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  lastSentAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([expiresAt])
+}
+

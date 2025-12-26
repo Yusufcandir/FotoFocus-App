@@ -1,0 +1,98 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "yusuf@gmail.com",
+      "passwordHash": "123456",
+      "avatarUrl": null
+    }
+  ],
+  "photos": [],
+  "comments": [],
+  "challenges": [
+    {
+      "id": 1,
+      "title": "Golden Hour",
+      "description": "Capture photos during golden hour. Focus on warm tones.",
+      "difficulty": "Easy",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_1.jpg",
+      "tips": [
+        "Shoot 20–40 minutes before sunset",
+        "Expose for highlights to avoid blowout",
+        "Use silhouettes for drama"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Street Photography",
+      "description": "Capture an authentic street moment.",
+      "difficulty": "Medium",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_2.jpg",
+      "tips": [
+        "Look for leading lines",
+        "Wait for decisive moments"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Portraits",
+      "description": "Take a portrait with soft light and clean background.",
+      "difficulty": "Easy",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_3.jpg",
+      "tips": [
+        "Use window light",
+        "Focus on the eyes"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Macro",
+      "description": "Capture close-up textures and details.",
+      "difficulty": "Medium",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_4.jpg",
+      "tips": [
+        "Use steady hands/tripod",
+        "Mind your focus plane"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Architecture",
+      "description": "Take a photo emphasizing structure and symmetry.",
+      "difficulty": "Medium",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_5.jpg",
+      "tips": [
+        "Try central composition",
+        "Watch vertical lines"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Night",
+      "description": "Capture a scene after dark with low noise.",
+      "difficulty": "Hard",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-27",
+      "imageUrl": "/uploads/default_challenge_6.jpg",
+      "tips": [
+        "Stabilize your camera",
+        "Use available light sources"
+      ]
+    }
+  ],
+  "nextUserId": 2,
+  "nextPhotoId": 1,
+  "nextCommentId": 1,
+  "nextChallengeId": 7,
+  "userRatings": []
+}
