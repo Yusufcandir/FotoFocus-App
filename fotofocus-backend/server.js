@@ -2015,7 +2015,18 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // helps avoid ::1 / IPv6 weirdness in some environments
+  family: 4,
+  // optional safety
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 10_000,
 });
+
+
+console.log("SMTP_HOST:", process.env.SMTP_HOST);
+console.log("SMTP_PORT:", process.env.SMTP_PORT);
+
 
 async function sendVerificationEmail(email, code) {
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
