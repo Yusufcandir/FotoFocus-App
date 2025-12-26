@@ -1692,12 +1692,12 @@ app.get("/users/:id/liked-posts", auth, async (req, res) => {
 
 // LESSONS
 // LESSONS
-app.get("/lessons", auth, async (req, res) => {
+app.get("/lessons", async (req, res) => {
   const lessons = await prisma.lesson.findMany({ orderBy: { order: "asc" } });
   return res.json(lessons); //  list
 });
 
-app.get("/lessons/:id", auth, async (req, res) => {
+app.get("/lessons/:id", async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(400).json({ message: "Invalid lesson id" });
@@ -2061,6 +2061,7 @@ app.listen(PORT, "0.0.0.0", () => {
 if (process.env.SEED_ON_BOOT === "true") {
   await seedDefaultLessons();
 }
+
 
 // Health check
 app.get("/health", (req, res) => res.json({ ok: true }));
