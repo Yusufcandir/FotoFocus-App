@@ -32,24 +32,6 @@ const __dirname = path.dirname(__filename);
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// serve uploaded images
-app.post("/uploads", upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "image required" });
-
-    const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
-      folder: "fotofocus",
-    });
-
-    return res.json({
-      url: r.secure_url,
-      publicId: r.public_id,
-    });
-  } catch (err) {
-    console.error("UPLOAD ERROR:", err);
-    return res.status(500).json({ message: "Upload failed" });
-  }
-});
 
 // -------- multer config --------
 const storage = multer.diskStorage({
@@ -2129,6 +2111,25 @@ export async function sendVerificationEmail(to, code) {
   }
 }
 
+
+// serve uploaded images
+app.post("/uploads", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "image required" });
+
+    const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
+      folder: "fotofocus",
+    });
+
+    return res.json({
+      url: r.secure_url,
+      publicId: r.public_id,
+    });
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    return res.status(500).json({ message: "Upload failed" });
+  }
+});
 
 
 
