@@ -2035,7 +2035,10 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ API running on http://0.0.0.0:${PORT}`);
 });
 // Seed default lessons
-seedDefaultLessons().catch(console.error);
+if (process.env.SEED_ON_BOOT === "true") {
+  await seedDefaultLessons();
+}
+
 // Health check
 app.get("/health", (req, res) => res.json({ ok: true }));
 
