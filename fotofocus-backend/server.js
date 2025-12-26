@@ -41,14 +41,7 @@ const UPLOAD_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 
-// -------- multer config --------
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-  filename: (_req, file, cb) => {
-    const safe = file.originalname.replace(/\s+/g, "_");
-    cb(null, `${Date.now()}_${safe}`);
-  },
-});
+
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -397,13 +390,10 @@ app.get("/challenges/:id", async (req, res) => {
 app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
   try {
     const { title, description } = req.body || {};
-    if (!title || !title.trim()) {
-      return res.status(400).json({ message: "title required" });
-    }
+    if (!title || !title.trim()) return res.status(400).json({ message: "title required" });
 
     let coverUrl = null;
 
-    // ✅ Cloudinary upload (memoryStorage => use buffer)
     if (req.file) {
       const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
         folder: "fotofocus/challenges",
@@ -415,8 +405,8 @@ app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
       data: {
         title: title.trim(),
         description: (description ?? "").trim() || null,
-        coverUrl,               // IMPORTANT: coverUrl
-        creatorId: req.user.id, // owner
+        coverUrl,
+        creatorId: req.user.id,
       },
     });
 
@@ -426,6 +416,7 @@ app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
     res.status(500).json({ message: "Failed to create challenge" });
   }
 });
+
 
 
 
@@ -457,14 +448,7 @@ app.delete("/challenges/:id", auth, async (req, res) => {
       select: { imageUrl: true },
     });
 
-    // ✅ Only delete local files (Cloudinary URLs are https and should NOT be unlinked)
-    for (const p of photos) {
-      if (p.imageUrl?.startsWith("/uploads/")) {
-        try {
-          fs.unlinkSync(path.join(__dirname, p.imageUrl));
-        } catch (_) {}
-      }
-    }
+ 
 
     await prisma.$transaction(async (tx) => {
       // 1) delete ratings
@@ -707,13 +691,7 @@ app.delete("/photos/:id", auth, async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    // ✅ delete local file ONLY if it is a local upload path
-    if (photo.imageUrl && photo.imageUrl.startsWith("/uploads/")) {
-      const filePath = path.join(__dirname, photo.imageUrl);
-      try {
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      } catch (_) {}
-    }
+  
 
     await prisma.$transaction(async (tx) => {
       // 1) delete ratings for this photo
@@ -1166,14 +1144,8 @@ app.delete("/me", auth, async (req, res) => {
           select: { imageUrl: true },
         });
 
-        // delete local files only
-        for (const p of photosWithUrls) {
-          if (p.imageUrl?.startsWith("/uploads/")) {
-            try {
-              fs.unlinkSync(path.join(__dirname, p.imageUrl));
-            } catch (_) {}
-          }
-        }
+        // Here you can add code to delete images from Cloudinary if needed
+        
 
         // delete photo rows
         await tx.photo.deleteMany({
@@ -1208,7 +1180,7 @@ app.delete("/me", auth, async (req, res) => {
 
 
 
-// ✅ POST avatar upload
+// POST avatar upload
 app.post("/me/avatar", auth, upload.single("avatar"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Missing avatar file" });
@@ -1219,7 +1191,7 @@ app.post("/me/avatar", auth, upload.single("avatar"), async (req, res) => {
 
     const updated = await prisma.user.update({
       where: { id: req.user.id },
-      data: { avatarUrl: r.secure_url }, // ✅ full https url
+      data: { avatarUrl: r.secure_url },
     });
 
     res.json(publicUser(updated));
@@ -1228,6 +1200,7 @@ app.post("/me/avatar", auth, upload.single("avatar"), async (req, res) => {
     res.status(500).json({ message: "Failed to upload avatar" });
   }
 });
+
 
 
 
@@ -1349,7 +1322,6 @@ app.get("/posts", optionalAuth, async (req, res) => {
 });
 
 // CREATE post (text + optional image upload)
-// CREATE post (text + optional image upload)
 app.post("/posts", auth, upload.single("image"), async (req, res) => {
   try {
     const text = (req.body.text || "").toString().trim();
@@ -1362,20 +1334,11 @@ app.post("/posts", auth, upload.single("image"), async (req, res) => {
       imageUrl = r.secure_url;
     }
 
-    if (!text && !imageUrl) {
-      return res.status(400).json({ message: "Post cannot be empty" });
-    }
+    if (!text && !imageUrl) return res.status(400).json({ message: "Post cannot be empty" });
 
     const post = await prisma.post.create({
-      data: {
-        userId: req.user.id,
-        text: text || null,
-        imageUrl,
-      },
-      include: {
-        user: true,
-        _count: { select: { comments: true, likes: true } },
-      },
+      data: { userId: req.user.id, text: text || null, imageUrl },
+      include: { user: true, _count: { select: { comments: true, likes: true } } },
     });
 
     res.json({
@@ -1395,6 +1358,7 @@ app.post("/posts", auth, upload.single("image"), async (req, res) => {
 });
 
 
+
 // DELETE post (owner)
 // DELETE post (owner)
 app.delete("/posts/:id", auth, async (req, res) => {
@@ -1406,13 +1370,7 @@ app.delete("/posts/:id", auth, async (req, res) => {
     if (!post) return res.status(404).json({ message: "Post not found" });
     if (post.userId !== req.user.id) return res.status(403).json({ message: "Forbidden" });
 
-    // ✅ delete local file only (Cloudinary URLs are https and should NOT be unlinked)
-    if (post.imageUrl && post.imageUrl.startsWith("/uploads/")) {
-      try {
-        const filePath = path.join(__dirname, post.imageUrl);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      } catch (_) {}
-    }
+  
 
     await prisma.post.delete({ where: { id: postId } });
     res.json({ success: true });
