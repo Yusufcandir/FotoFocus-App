@@ -10,6 +10,12 @@ import { PrismaClient } from "@prisma/client";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import "dotenv/config";
+import multer from "multer";
+import { uploadBufferToCloudinary } from "./utils/cloudinary.js";
+
+
+
+
 
 
 const prisma = new PrismaClient();
@@ -28,7 +34,23 @@ const UPLOAD_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // serve uploaded images
-app.use("/uploads", express.static(UPLOAD_DIR));
+app.post("/uploads", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "image required" });
+
+    const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
+      folder: "fotofocus",
+    });
+
+    return res.json({
+      url: r.secure_url,
+      publicId: r.public_id,
+    });
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    return res.status(500).json({ message: "Upload failed" });
+  }
+});
 
 // -------- multer config --------
 const storage = multer.diskStorage({
@@ -39,7 +61,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // -------- auth helpers --------
 function signToken(user) {
@@ -407,6 +429,37 @@ app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
     res.status(500).json({ message: "Failed to create challenge" });
   }
 });
+
+app.post("/challenges", authenticateToken, upload.single("cover"), async (req, res) => {
+  try {
+    const { title, description } = req.body || {};
+    if (!title) return res.status(400).json({ message: "title required" });
+
+    let coverUrl = req.body?.coverUrl || null;
+
+    if (req.file) {
+      const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
+        folder: "fotofocus/challenges",
+      });
+      coverUrl = r.secure_url;
+    }
+
+    const challenge = await prisma.challenge.create({
+      data: {
+        title,
+        description: description || null,
+        coverUrl,
+        creatorId: req.user.id,
+      },
+    });
+
+    return res.json(challenge);
+  } catch (err) {
+    console.error("CREATE CHALLENGE ERROR:", err);
+    return res.status(500).json({ message: "Failed to create challenge" });
+  }
+});
+
 // delete challenge (only owner)
 // delete challenge (only owner)
 app.delete("/challenges/:id", auth, async (req, res) => {
@@ -579,6 +632,34 @@ app.post("/challenges/:id/photos", auth, upload.single("photo"), async (req, res
     res.status(500).json({ message: "Failed to upload photo" });
   }
 });
+
+app.post("/photos", authenticateToken, upload.single("image"), async (req, res) => {
+  try {
+    const { challengeId, caption } = req.body || {};
+    const cid = Number(challengeId);
+    if (!cid) return res.status(400).json({ message: "challengeId required" });
+    if (!req.file) return res.status(400).json({ message: "image required" });
+
+    const r = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype, {
+      folder: "fotofocus/photos",
+    });
+
+    const photo = await prisma.photo.create({
+      data: {
+        challengeId: cid,
+        userId: req.user.id,
+        imageUrl: r.secure_url,
+        caption: caption || null,
+      },
+    });
+
+    return res.json(photo);
+  } catch (err) {
+    console.error("SUBMIT PHOTO ERROR:", err);
+    return res.status(500).json({ message: "Failed to upload photo" });
+  }
+});
+
 
 // get one photo
 app.get("/photos/:id", async (req, res) => {
