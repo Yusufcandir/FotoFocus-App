@@ -2027,16 +2027,28 @@ const transporter = nodemailer.createTransport({
 console.log("SMTP_HOST:", process.env.SMTP_HOST);
 console.log("SMTP_PORT:", process.env.SMTP_PORT);
 
-
-async function sendVerificationEmail(email, code) {
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
-  await transporter.sendMail({
-    from,
-    to: email,
-    subject: "Your FotoFocus verification code",
-    text: `Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
+// email.js
+export async function sendVerificationEmail(to, code) {
+  const resp = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "FotoFocus <onboarding@resend.dev>", // later you can use your own domain
+      to: [to],
+      subject: "Your FotoFocus verification code",
+      html: `<p>Your code is: <b>${code}</b></p>`,
+    }),
   });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Resend failed: ${resp.status} ${text}`);
+  }
 }
+
 
 
 
