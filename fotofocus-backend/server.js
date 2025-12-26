@@ -411,7 +411,7 @@ app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
   }
 });
 
-app.post("/challenges", authenticateToken, upload.single("cover"), async (req, res) => {
+app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
   try {
     const { title, description } = req.body || {};
     if (!title) return res.status(400).json({ message: "title required" });
@@ -614,7 +614,7 @@ app.post("/challenges/:id/photos", auth, upload.single("photo"), async (req, res
   }
 });
 
-app.post("/photos", authenticateToken, upload.single("image"), async (req, res) => {
+app.post("/photos", auth, upload.single("image"), async (req, res) => {
   try {
     const { challengeId, caption } = req.body || {};
     const cid = Number(challengeId);
