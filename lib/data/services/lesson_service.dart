@@ -10,9 +10,6 @@ class LessonService {
   Future<List<Lesson>> fetchLessons() async {
     final data = await _api.get(AppConstants.lessons, auth: true);
 
-    // Backend might return:
-    // 1) List مباشرة:  [ {...}, {...} ]
-    // 2) Map wrapper: { lessons: [ {...}, {...} ] }
     final List rawList = (data is List)
         ? data
         : ((data is Map && data['lessons'] is List)
@@ -27,9 +24,6 @@ class LessonService {
   Future<Lesson> fetchLessonDetail(int id) async {
     final data = await _api.get("${AppConstants.lessons}/$id", auth: true);
 
-    // Backend might return:
-    // 1) Map directly: { ...lesson fields... }
-    // 2) Wrapper: { lesson: { ... } }
     final Map lessonJson = (data is Map && data['lesson'] is Map)
         ? (data['lesson'] as Map)
         : (data as Map);

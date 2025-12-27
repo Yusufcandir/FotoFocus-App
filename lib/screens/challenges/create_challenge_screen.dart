@@ -14,11 +14,9 @@ class CreateChallengeScreen extends StatefulWidget {
 }
 
 class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
-  // Controllers
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  // Selected cover image
   File? _selectedImage;
 
   bool _submitting = false;

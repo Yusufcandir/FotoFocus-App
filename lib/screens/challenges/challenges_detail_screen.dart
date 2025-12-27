@@ -112,7 +112,6 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         challenge.id,
         {
           'title': title,
-          // your backend might use one of these keys
           'subtitle': subtitle,
           'description': subtitle,
         },
@@ -176,8 +175,6 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     }
   }
 
-  /// Tries multiple common `ChallengeService` update signatures so you don't
-  /// need to change other files.
   Future<void> _updateChallengeOnServer(
       int id, Map<String, dynamic> data) async {
     final svc = _service as dynamic;
@@ -209,11 +206,10 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
       id,
       title: data['title'],
       description: data['description'],
-      coverImage: data['coverImage'], // if you have it
+      coverImage: data['coverImage'],
     );
   }
 
-  /// Tries multiple common `ChallengeService` delete signatures.
   Future<void> _deleteChallengeOnServer(int id) async {
     await _service.deleteChallenge(id);
   }
@@ -230,7 +226,6 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         creatorId != null &&
         currentUserId == creatorId;
 
-    // ---- AppBar creator (works with either creator object OR creatorId) ----
     final creatorObj = _challenge?.creator;
     int? creatorUserId;
     String creatorName = 'User';
@@ -296,6 +291,7 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coverUrl = _resolveImageUrl(challenge.coverImageUrl);
+    final desc = (challenge.description ?? challenge.subtitle ?? "").trim();
 
     // creator (backend might return object or id)
     final creator = challenge.creator;
@@ -333,10 +329,10 @@ class _Body extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    if (challenge.subtitle.trim().isNotEmpty) ...[
+                    if (desc.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
-                        challenge.subtitle,
+                        desc,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

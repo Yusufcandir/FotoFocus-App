@@ -23,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _boot() async {
     final auth = context.read<AuthProvider>();
 
-    // ✅ validate token properly by calling /me inside init()
+    // validate token properly by calling /me inside init()
     await auth.init();
 
     if (!mounted) return;

@@ -46,7 +46,6 @@ class ChallengeService {
     dynamic data;
 
     if (coverFile != null) {
-      // ✅ backend expects upload.single("cover")
       data = await _api.multipartPost(
         AppConstants.challenges,
         file: coverFile,
@@ -69,14 +68,11 @@ class ChallengeService {
       );
     }
 
-    // supports: { challenge: {...} } OR {...}
     final raw =
         (data is Map && data["challenge"] is Map) ? data["challenge"] : data;
     return Challenge.fromJson(Map<String, dynamic>.from(raw as Map));
   }
 
-  /// ✅ PUT /challenges/:id
-  /// This is what your app is missing.
   Future<Challenge> updateChallenge(
     int id, {
     required String title,
@@ -88,8 +84,6 @@ class ChallengeService {
       'description': description ?? '',
     };
 
-    // Prefer PUT if your backend uses it. If your ApiService doesn't have put(),
-    // change this line to _api.patch(...)
     final res = await _api.put(
       '/challenges/$id',
       body: body,
@@ -99,7 +93,6 @@ class ChallengeService {
     return Challenge.fromJson(res as Map<String, dynamic>);
   }
 
-  /// DELETE /challenges/:id
   Future<void> deleteChallenge(int id) async {
     await _api.delete('/challenges/$id', auth: true);
   }

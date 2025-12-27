@@ -11,7 +11,6 @@ class Challenge {
   final String endsAt;
   final ChallengeCreator? creator;
 
-  /// ✅ Single source of truth
   final String coverUrl;
 
   final List<String> tips;
@@ -32,7 +31,6 @@ class Challenge {
     required this.creator,
   });
 
-  /// ✅ Backwards compatibility if some screens still use coverImageUrl
   @Deprecated('Use coverUrl instead')
   String get coverImageUrl => coverUrl;
 

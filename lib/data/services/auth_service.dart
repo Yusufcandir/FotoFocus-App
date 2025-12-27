@@ -37,13 +37,8 @@ class AuthService {
     return res;
   }
 
-  // ============================================================
-  // ✅ Two-step registration (email verification code)
-  // ============================================================
-
   /// STEP 1:
-  /// POST /auth/register -> sends a 6-digit code to email
-  /// Response example: { message: "Verification code sent." }
+  /// POST /auth/register -> sends verification code to email
   Future<void> requestRegister({
     required String email,
     required String password,
@@ -106,11 +101,6 @@ class AuthService {
   Future<User> me() async {
     final data = await _api.get("/me", auth: true);
 
-    // Backend responses can vary:
-    // - { user: {...} }
-    // - { data: {...} }
-    // - { data: { user: {...} } }
-    // - directly {...}
     if (data is Map) {
       dynamic payload = data;
 

@@ -10,6 +10,7 @@ class AppConstants {
   static const String photos = "/photos";
   static const String comments = "/comments";
   static const String ratings = "/ratings";
+  static const String posts = "/posts";
 
   static String resolveImageUrl(String? url) {
     if (url == null) return "";
@@ -27,8 +28,7 @@ class AppConstants {
     // If backend already sends full URL
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
 
-    // Backend sends "/uploads/..."
-    final base = AppConstants.baseUrl; // must be "http://10.0.2.2:8080"
+    final base = AppConstants.baseUrl;
     if (url.startsWith('/')) return '$base$url';
     return '$base/$url';
   }

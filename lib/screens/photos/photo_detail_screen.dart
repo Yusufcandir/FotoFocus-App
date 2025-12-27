@@ -13,7 +13,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:saver_gallery/saver_gallery.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 String resolveImageUrl(String url) {
   final u = url.trim();
@@ -39,7 +38,7 @@ class PhotoDetailScreen extends StatefulWidget {
 
 Future<void> downloadToGallery(BuildContext context, String url) async {
   try {
-    // iOS permission (required)
+    // iOS permission
     if (Platform.isIOS) {
       final p = await Permission.photosAddOnly.request();
       if (!p.isGranted) {
@@ -59,7 +58,7 @@ Future<void> downloadToGallery(BuildContext context, String url) async {
     );
     final bytes = Uint8List.fromList(resp.data!);
 
-    // try save (Android 10+ usually needs no permission)
+    // try save
     Future<bool> _saveOnce() async {
       final result = await SaverGallery.saveImage(
         bytes,
@@ -72,7 +71,7 @@ Future<void> downloadToGallery(BuildContext context, String url) async {
 
     bool ok = await _saveOnce();
 
-    // If it failed on Android, request legacy storage permission and retry
+    // If it failed on Android request legacy storage permission and retry
     if (!ok && Platform.isAndroid) {
       final storage = await Permission.storage.request();
       if (!storage.isGranted) {
@@ -230,8 +229,7 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
                           fullscreenDialog: true,
                           builder: (_) => FullScreenPhotoViewer(
                             imageUrl: url,
-                            heroTag:
-                                'photo-${photo.id}', // ensure photo.id exists
+                            heroTag: 'photo-${photo.id}',
                           ),
                         ),
                       );
@@ -296,7 +294,7 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
                       ),
                       const Spacer(),
 
-                      // ⭐ rating
+                      //  rating
                       _StarBar(
                         value: p.myRating,
                         onRate: (v) => context
@@ -306,7 +304,7 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
 
                       const SizedBox(width: 8),
 
-                      // 💬 comments button
+                      //  comments button
                       IconButton(
                         icon: const Icon(Icons.comment_outlined),
                         onPressed: () {

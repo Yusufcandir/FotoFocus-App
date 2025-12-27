@@ -436,19 +436,159 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                     body: TabBarView(
                       children: [
+                        // Posts TAB
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                           child: p.postsLoading
                               ? const Center(child: CircularProgressIndicator())
-                              : p.posts.isEmpty
-                                  ? const Center(child: Text("No posts yet"))
-                                  : ListView.separated(
-                                      itemCount: p.posts.length,
-                                      separatorBuilder: (_, __) =>
-                                          const SizedBox(height: 10),
-                                      itemBuilder: (_, i) =>
-                                          FeedPostCard(post: p.posts[i]),
+                              : Builder(builder: (context) {
+                                  bool hasImage(FeedPost post) {
+                                    final s = (post.imageUrl ?? '').trim();
+                                    return s.isNotEmpty &&
+                                        s.toLowerCase() != 'null';
+                                  }
+
+                                  final imagePosts =
+                                      p.posts.where(hasImage).toList();
+
+                                  if (imagePosts.isEmpty) {
+                                    return const Center(
+                                        child: Text("No photo posts yet"));
+                                  }
+
+                                  return GridView.builder(
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8,
+                                      childAspectRatio: 1,
                                     ),
+                                    itemCount: imagePosts.length,
+                                    itemBuilder: (context, index) {
+                                      final post = imagePosts[index];
+                                      final img =
+                                          resolveImageUrl(post.imageUrl!);
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/post_detail',
+                                            arguments: post,
+                                          );
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Image.network(
+                                                img,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                                errorBuilder: (_, __, ___) =>
+                                                    Container(
+                                                  color: Colors.white,
+                                                  alignment: Alignment.center,
+                                                  child: const Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.black26),
+                                                ),
+                                              ),
+                                            ),
+
+                                            // Like/comment overlay
+                                            Positioned(
+                                              left: 8,
+                                              bottom: 8,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withOpacity(0.45),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      post.isLiked
+                                                          ? Icons.favorite
+                                                          : Icons
+                                                              .favorite_border,
+                                                      size: 16,
+                                                      color: Colors.white,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text('${post.likeCount}',
+                                                        style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12)),
+                                                    const SizedBox(width: 10),
+                                                    const Icon(
+                                                        Icons
+                                                            .chat_bubble_outline,
+                                                        size: 16,
+                                                        color: Colors.white),
+                                                    const SizedBox(width: 4),
+                                                    Text('${post.commentCount}',
+                                                        style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+
+                                            // Delete button (visible on any background)
+                                            if (isMe)
+                                              Positioned(
+                                                top: 6,
+                                                right: 6,
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    try {
+                                                      await p.deletePost(post
+                                                          .id); // your method
+                                                    } catch (e) {
+                                                      if (!mounted) return;
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                            content: Text(
+                                                                "Delete failed: $e")),
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black
+                                                          .withOpacity(0.45),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    child: const Icon(
+                                                        Icons.delete,
+                                                        color: Colors.white,
+                                                        size: 18),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }),
                         ),
 
                         // Media TAB
@@ -758,23 +898,25 @@ class FeedPostCard extends StatelessWidget {
                 subtitle:
                     Text(u.email, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: 220,
-                  errorBuilder: (_, __, ___) => Container(
+              if (imageUrl.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
                     height: 220,
-                    color: Colors.black12,
-                    alignment: Alignment.center,
-                    child:
-                        const Icon(Icons.broken_image, color: Colors.black26),
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 220,
+                      color: Colors.black12,
+                      alignment: Alignment.center,
+                      child:
+                          const Icon(Icons.broken_image, color: Colors.black26),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 10),
+              ],
               const SizedBox(height: 10),
               Consumer<FeedProvider>(
                 builder: (context, feed, _) {
@@ -803,9 +945,9 @@ class FeedPostCard extends StatelessWidget {
                   );
                 },
               ),
-              if (post.content.trim().isNotEmpty) ...[
+              if (post.text.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(post.content.trim()),
+                Text(post.text.trim()),
               ],
             ],
           ),
@@ -813,4 +955,19 @@ class FeedPostCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// Helper widget
+Widget _TextTile(String body) {
+  return Container(
+    color: Colors.white,
+    padding: const EdgeInsets.all(8),
+    child: Align(
+        alignment: Alignment.topLeft,
+        child: Text(
+          body.isEmpty ? "Text post" : body,
+          maxLines: 6,
+          overflow: TextOverflow.ellipsis,
+        )),
+  );
 }

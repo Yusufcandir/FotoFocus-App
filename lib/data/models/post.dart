@@ -26,7 +26,7 @@ class PublicUserLite {
 
 class FeedPost {
   final int id;
-  final String content;
+  final String text;
   final String? imageUrl;
   final DateTime createdAt;
   final PublicUserLite user;
@@ -37,7 +37,7 @@ class FeedPost {
 
   FeedPost({
     required this.id,
-    required this.content,
+    required this.text,
     required this.imageUrl,
     required this.createdAt,
     required this.user,
@@ -47,37 +47,53 @@ class FeedPost {
   });
 
   factory FeedPost.fromJson(Map<String, dynamic> j) {
+    String readBody(dynamic v) {
+      if (v == null) return '';
+      final s = v.toString().trim();
+      if (s.isEmpty || s.toLowerCase() == 'null') return '';
+      return s;
+    }
+
+    // ✅ accept multiple possible keys
+    final body = [
+      j['text'],
+      j['content'],
+      j['caption'],
+      j['body'],
+      j['message'],
+      j['description'],
+    ].map(readBody).firstWhere((s) => s.isNotEmpty, orElse: () => '');
+
     return FeedPost(
       id: (j['id'] as num).toInt(),
-      content: (j['content'] ?? '').toString(),
+      text: body,
       imageUrl: j['imageUrl']?.toString(),
-      createdAt:
-          DateTime.tryParse(j['createdAt']?.toString() ?? '') ?? DateTime.now(),
-      user: PublicUserLite.fromJson((j['user'] as Map).cast<String, dynamic>()),
-      likeCount: (j['likeCount'] as num?)?.toInt() ?? 0,
-      commentCount: (j['commentCount'] as num?)?.toInt() ?? 0,
-      isLiked: (j['isLiked'] as bool?) ?? false,
+      createdAt: DateTime.parse(j['createdAt'].toString()),
+      user: PublicUserLite.fromJson(j['user'] as Map<String, dynamic>),
+      likeCount: (j['likeCount'] ?? 0) as int,
+      commentCount: (j['commentCount'] ?? 0) as int,
+      isLiked: (j['isLiked'] ?? false) as bool,
     );
   }
 }
 
 class FeedComment {
   final int id;
-  final String text;
   final DateTime createdAt;
   final PublicUserLite user;
+  final String text;
 
   FeedComment({
     required this.id,
-    required this.text,
     required this.createdAt,
     required this.user,
+    required this.text,
   });
 
   factory FeedComment.fromJson(Map<String, dynamic> j) {
     return FeedComment(
       id: (j['id'] as num).toInt(),
-      text: (j['text'] ?? '').toString(),
+      text: (j['text'] ?? j['content']).toString(),
       createdAt:
           DateTime.tryParse(j['createdAt']?.toString() ?? '') ?? DateTime.now(),
       user: PublicUserLite.fromJson((j['user'] as Map).cast<String, dynamic>()),

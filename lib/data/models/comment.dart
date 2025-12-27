@@ -1,4 +1,3 @@
-// lib/data/models/comment.dart
 class CommentUser {
   final int id;
   final String email;
@@ -29,11 +28,9 @@ class CommentModel {
   final int userId;
   final DateTime createdAt;
 
-  // ✅ reply support
   final int? parentId;
   final List<CommentModel> replies;
 
-  // ✅ richer user
   final CommentUser user;
 
   const CommentModel({
@@ -47,16 +44,9 @@ class CommentModel {
     this.replies = const [],
   });
 
-  // Backward compatible getter for your old UI usage
   String get userEmail => user.email;
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
-    // ✅ Support both new and old backend shapes
-    // Old:
-    // { userEmail: "...", userId: 1, ... }
-    // New:
-    // { user: {id,email,name,avatarUrl}, replies: [...] }
-
     final userJson = (json["user"] is Map<String, dynamic>)
         ? (json["user"] as Map<String, dynamic>)
         : <String, dynamic>{

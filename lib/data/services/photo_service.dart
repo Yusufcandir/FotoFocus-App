@@ -107,7 +107,7 @@ class PhotoService {
     final data = await _api.multipartPost(
       "${AppConstants.challenges}/$challengeId/photos",
       file: photoFile,
-      fileField: "photo", // ✅ backend expects upload.single("photo")
+      fileField: "photo",
       auth: true,
     );
 

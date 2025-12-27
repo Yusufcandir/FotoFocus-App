@@ -31,8 +31,8 @@ class _LearnScreenState extends State<LearnScreen> {
       appBar: AppBar(
         backgroundColor: bg,
         elevation: 0,
-        scrolledUnderElevation: 0, // ✅ prevents scroll color/elevation change
-        surfaceTintColor: Colors.transparent, // ✅ prevents Material3 tint
+        scrolledUnderElevation: 0, //  prevents scroll color/elevation change
+        surfaceTintColor: Colors.transparent, // prevents Material3 tint
         title: const Text(
           "Learn Hub",
           style: TextStyle(

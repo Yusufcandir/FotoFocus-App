@@ -73,7 +73,6 @@ class ProfileProvider extends ChangeNotifier {
         isFollowing = null;
       }
 
-      // Load posts + liked posts (don't break the whole page if one fails)
       try {
         posts = await _service.fetchUserPosts(userId: userId);
       } catch (_) {
@@ -94,7 +93,6 @@ class ProfileProvider extends ChangeNotifier {
     } finally {
       loading = false;
 
-      // make sure they are never stuck true if something failed early
       postsLoading = false;
       likedLoading = false;
 
@@ -132,6 +130,16 @@ class ProfileProvider extends ChangeNotifier {
         ...(stats ?? {}),
         "photoCount": photos.length,
       };
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deletePost(int postId) async {
+    try {
+      await _service.deletePost(postId);
+      posts.removeWhere((p) => p.id == postId);
       notifyListeners();
     } catch (e) {
       rethrow;

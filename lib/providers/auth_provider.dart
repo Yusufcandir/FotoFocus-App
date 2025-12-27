@@ -85,10 +85,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ============================================================
-  // ✅ Two-step registration
-  // ============================================================
-
   /// STEP 1: send code (does NOT log user in)
   Future<bool> requestRegister(
       String email, String password, String confirmPassword) async {
@@ -115,7 +111,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       final res = await _authService.verifyRegister(email: email, code: code);
 
-      // AuthService already saved the token into TokenStorage
       _user = res.user;
       _error = null;
 

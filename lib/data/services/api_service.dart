@@ -8,13 +8,13 @@ import '../../core/constants.dart';
 import 'token_storage.dart';
 
 class ApiException implements Exception {
-  final int statusCode; // 0 = network/timeout/unknown
+  final int statusCode;
   final String message;
 
   ApiException(this.statusCode, this.message);
 
   @override
-  String toString() => message; // keep SnackBars clean
+  String toString() => message;
 }
 
 class ApiService {
@@ -24,16 +24,14 @@ class ApiService {
   final TokenStorage _tokenStorage;
 
   /// Builds a request URI from AppConstants.baseUrl + [path].
-  /// IMPORTANT: preserves any path prefix in baseUrl (e.g. ".../api").
   Uri _buildUri(String path, [Map<String, dynamic>? query]) {
     final base = Uri.parse(AppConstants.baseUrl);
 
     final cleanPath = path.startsWith("/") ? path : "/$path";
 
-    // Preserve baseUrl path prefix if present (e.g. "/api")
     String basePath = base.path;
     if (basePath.isEmpty) basePath = "";
-    // remove trailing slash from basePath (except if it's just "/")
+
     if (basePath.length > 1 && basePath.endsWith("/")) {
       basePath = basePath.substring(0, basePath.length - 1);
     }

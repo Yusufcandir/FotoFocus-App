@@ -11,7 +11,7 @@ import '../photos/photo_detail_screen.dart';
 String resolveImageUrl(String url) {
   if (url.isEmpty) return url;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  final base = AppConstants.baseUrl; // should be http://10.0.2.2:8080
+  final base = AppConstants.baseUrl;
   if (url.startsWith('/')) return '$base$url';
   return '$base/$url';
 }
@@ -192,7 +192,7 @@ class _PhotoCard extends StatelessWidget {
           children: [
             Positioned.fill(
               child: Image.network(
-                resolveImageUrl(photo.imageUrl), // ✅ FIX: always full url
+                resolveImageUrl(photo.imageUrl),
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: Colors.white,

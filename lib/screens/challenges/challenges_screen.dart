@@ -34,7 +34,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
   String _resolveImageUrl(String? raw) {
     if (raw == null || raw.isEmpty) return '';
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    // IMPORTANT: your backend returns "/uploads/..."
+
     return "${AppConstants.baseUrl}$raw";
   }
 

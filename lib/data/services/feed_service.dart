@@ -46,24 +46,29 @@ class FeedService {
     return const [];
   }
 
-  Future<FeedPost> createPost({required String content, File? image}) async {
+  Future<FeedPost> createPost({required String text, File? image}) async {
+    if (image == null) {
+      //  send JSON
+      final res = await _dio.post(
+        _url("/posts"),
+        data: {"text": text},
+        options: Options(headers: await _headers(auth: true)),
+      );
+      return FeedPost.fromJson(res.data);
+    }
+
+    // send multipart only if image exists
     final form = FormData.fromMap({
-      'content': content,
-      if (image != null)
-        'image': await MultipartFile.fromFile(image.path,
-            filename: image.path.split(Platform.pathSeparator).last),
+      "text": text,
+      "image": await MultipartFile.fromFile(image.path, filename: "post.jpg"),
     });
 
     final res = await _dio.post(
-      _url('/posts'),
+      _url("/posts"),
       data: form,
-      options: Options(
-        headers: await _headers(auth: true),
-        contentType: 'multipart/form-data',
-      ),
+      options: Options(headers: await _headers(auth: true)),
     );
-
-    return FeedPost.fromJson((res.data as Map).cast<String, dynamic>());
+    return FeedPost.fromJson(res.data);
   }
 
   Future<void> deletePost(int postId) async {

@@ -2,16 +2,12 @@ class Lesson {
   final int id;
   final String title;
 
-  /// Use one field in UI: show this in list + detail
   final String body;
 
-  /// Optional image (can be empty)
   final String imageUrl;
 
-  /// Optional ordering
   final int order;
 
-  /// Optional slug (if you use it later)
   final String? slug;
 
   Lesson({
@@ -24,9 +20,6 @@ class Lesson {
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    // Support BOTH backends:
-    // - old: { id, title, body, imageUrl }
-    // - new: { id, slug, title, summary, content, coverUrl, order }
     final title = (json['title'] ?? '').toString();
 
     final body =

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants.dart';
-import '../../data/models/post.dart'; // FeedPost / FeedComment / PublicUserLite
+import '../../data/models/post.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feed_provider.dart';
 
@@ -41,7 +41,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     try {
       await context.read<FeedProvider>().addCommentToPost(widget.post.id, text);
 
-      // keep local post object in sync (so when you go back, counts can be updated)
       widget.post.commentCount += 1;
     } catch (e) {
       if (!mounted) return;
@@ -89,7 +88,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       ),
       body: Column(
         children: [
-          // ✅ POST HEADER (like in feed)
+          //  POST HEADER (like in feed)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
             child: _PostHeaderCard(post: widget.post),
@@ -97,7 +96,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
           const Divider(height: 1),
 
-          // ✅ COMMENTS LIST
+          //  COMMENTS LIST
           Expanded(
             child: loading
                 ? const Center(child: CircularProgressIndicator())
@@ -150,12 +149,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CircleAvatar(
-                                      backgroundImage: avatar == null
-                                          ? null
-                                          : NetworkImage(avatar),
-                                      child: avatar == null
-                                          ? const Icon(Icons.person)
+                                      backgroundImage: (avatar.isNotEmpty &&
+                                              avatar.startsWith('http'))
+                                          ? NetworkImage(avatar)
                                           : null,
+                                      child: (avatar.isNotEmpty &&
+                                              avatar.startsWith('http'))
+                                          ? null
+                                          : const Icon(Icons.person, size: 18),
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -187,7 +188,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           ),
           ),
 
-          // ✅ COMMENT INPUT (keeps your current logic)
+          // COMMENT INPUT
           SafeArea(
             top: false,
             child: Padding(
@@ -242,15 +243,20 @@ class _PostHeaderCard extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
-                backgroundImage: avatar == null ? null : NetworkImage(avatar),
-                child: avatar == null ? const Icon(Icons.person) : null,
+                backgroundImage:
+                    (avatar.isNotEmpty && avatar.startsWith('http'))
+                        ? NetworkImage(avatar)
+                        : null,
+                child: (avatar.isNotEmpty && avatar.startsWith('http'))
+                    ? null
+                    : const Icon(Icons.person, size: 18),
               ),
               title: Text(u.displayName,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle:
                   Text(u.email, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
-            if (imageUrl != null) ...[
+            if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
                 child: Image.network(
@@ -273,9 +279,9 @@ class _PostHeaderCard extends StatelessWidget {
                 Text('${post.commentCount}'),
               ],
             ),
-            if (post.content.trim().isNotEmpty) ...[
+            if (post.text.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(post.content.trim()),
+              Text(post.text.trim()),
             ],
           ],
         ),

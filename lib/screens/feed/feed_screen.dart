@@ -6,8 +6,6 @@ import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feed_provider.dart';
-import '../../data/models/post.dart';
-import '../../data/services/feed_service.dart';
 import 'post_detail_screen.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -93,7 +91,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           Navigator.pop(ctx);
                           await context
                               .read<FeedProvider>()
-                              .createPost(content: text, image: picked);
+                              .createPost(text: text, image: picked);
                         },
                         child: const Text("Post"),
                       ),
@@ -217,12 +215,14 @@ class _FeedScreenState extends State<FeedScreen> {
                                     arguments: p.user.id,
                                   ),
                                   child: CircleAvatar(
-                                    backgroundImage: avatarUrl == null
-                                        ? null
-                                        : NetworkImage(avatarUrl),
-                                    child: avatarUrl == null
-                                        ? const Icon(Icons.person)
+                                    backgroundImage: (avatarUrl.isNotEmpty &&
+                                            avatarUrl.startsWith('http'))
+                                        ? NetworkImage(avatarUrl)
                                         : null,
+                                    child: (avatarUrl.isNotEmpty &&
+                                            avatarUrl.startsWith('http'))
+                                        ? null
+                                        : const Icon(Icons.person),
                                   ),
                                 ),
                                 title: Text(
@@ -251,17 +251,17 @@ class _FeedScreenState extends State<FeedScreen> {
                                       )
                                     : null,
                               ),
-                              if (p.content.trim().isNotEmpty)
+                              if (p.text.trim().isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(p.content),
+                                  child: Text(p.text.trim()),
                                 ),
-                              if (imgUrl != null)
+                              if (imgUrl.isNotEmpty &&
+                                  imgUrl.startsWith('http'))
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(14),
                                   child: GestureDetector(
                                     onTap: () {
-                                      // You can reuse your FullScreenPhotoViewer here if you want
                                       showDialog(
                                         context: context,
                                         builder: (_) => Dialog(

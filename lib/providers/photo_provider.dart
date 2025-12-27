@@ -21,9 +21,8 @@ class PhotoProvider extends ChangeNotifier {
   String? _error;
   bool _uploading = false;
 
-  int? _myRating; // ✅ current user's rating for _photo
+  int? _myRating;
 
-  // Reply state
   int? _replyToCommentId;
   String? _replyToLabel;
 
@@ -75,13 +74,13 @@ class PhotoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Replace a photo in the list by id (used after rating/caption updates)
+  /// Replace a photo in the list by id
   void _replaceInList(Photo updated) {
     final idx = _photos.indexWhere((p) => p.id == updated.id);
     if (idx != -1) _photos[idx] = updated;
   }
 
-  /// Build a new Photo instance with updated rating fields (no copyWith dependency)
+  /// Build a new Photo instance with updated rating fields
   Photo _withRating(Photo base, double avgRating, int ratingCount) {
     return Photo(
       id: base.id,
@@ -99,9 +98,6 @@ class PhotoProvider extends ChangeNotifier {
   // -------------------------------
   // FETCH PHOTOS FOR CHALLENGE
   // -------------------------------
-
-  /// ✅ Your UI previously used "loadChallengePhotos"
-  /// Keep it as an alias so nothing breaks.
   Future<void> loadChallengePhotos(int challengeId) async {
     _setLoading(true);
     _setError(null);
@@ -139,7 +135,6 @@ class PhotoProvider extends ChangeNotifier {
       _photo = await _service.fetchPhotoDetail(photoId);
       _comments = await _service.fetchComments(photoId);
 
-      // ✅ load my rating for this photo (optional but needed for rating UI)
       _myRating = await _service.fetchMyRating(photoId);
     } catch (e) {
       _setError(e.toString());
@@ -185,9 +180,7 @@ class PhotoProvider extends ChangeNotifier {
     try {
       _myRating = await _service.fetchMyRating(photoId);
       notifyListeners();
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   }
 
   // -------------------------------
@@ -248,14 +241,14 @@ class PhotoProvider extends ChangeNotifier {
     try {
       _setError(null);
 
-      // ✅ include parentId if in reply mode
+      //  include parentId if in reply mode
       await _service.postComment(
         photoId,
         t,
         parentId: _replyToCommentId,
       );
 
-      // ✅ reload to ensure correct nesting in UI
+      //  reload to ensure correct nesting in UI
       cancelReply();
       await reloadComments(photoId);
     } catch (e) {
@@ -272,7 +265,6 @@ class PhotoProvider extends ChangeNotifier {
 
       final updated = await _service.ratePhoto(photoId, rating);
 
-      // backend returns: { id, avgRating, ratingCount } (or nested photo)
       final avg = (updated['avgRating'] is num)
           ? (updated['avgRating'] as num).toDouble()
           : 0.0;
@@ -280,18 +272,15 @@ class PhotoProvider extends ChangeNotifier {
           ? (updated['ratingCount'] as num).toInt()
           : 0;
 
-      // ✅ update detail photo if open
       if (_photo != null && _photo!.id == photoId) {
         _photo = _withRating(_photo!, avg, cnt);
       }
 
-      // ✅ update list photo too
       final idx = _photos.indexWhere((p) => p.id == photoId);
       if (idx != -1) {
         _photos[idx] = _withRating(_photos[idx], avg, cnt);
       }
 
-      // ✅ update my rating locally
       _myRating = rating;
 
       notifyListeners();
@@ -300,8 +289,6 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
-  // -------------------------------
-  // REPORT PHOTO
   Future<void> reportPhoto(int photoId, String reason) async {
     try {
       _setError(null);

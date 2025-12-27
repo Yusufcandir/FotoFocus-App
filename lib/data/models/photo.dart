@@ -1,31 +1,22 @@
 import '../../core/constants.dart';
 
 class Photo {
-  /// Unique photo id
   final int id;
 
-  /// Challenge this photo belongs to
   final int challengeId;
 
-  /// Full or relative image URL
   final String imageUrl;
 
-  /// Optional caption
   final String caption;
 
-  /// Email of uploader (for display)
   final String userEmail;
 
-  /// ISO date string from backend
   final String createdAt;
 
-  /// Average rating (0.0 if none)
   final double avgRating;
 
-  /// Number of ratings
   final int ratingCount;
 
-  /// User id of uploader (IMPORTANT for delete permission)
   final int userId;
 
   const Photo({
@@ -51,7 +42,7 @@ class Photo {
       userId: (json["userId"] as num).toInt(),
       caption: (json["caption"] ?? "").toString(),
 
-      // ✅ normalize once here → UI always gets a usable URL
+      //  normalize once here → UI always gets a usable URL
       imageUrl: AppConstants.resolveImageUrl(rawUrl),
 
       avgRating: ((json["avgRating"] ?? 0) as num).toDouble(),
@@ -85,7 +76,7 @@ class Photo {
     );
   }
 
-  /// Convert to JSON (useful later for caching / optimistic UI)
+  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       "id": id,
@@ -105,7 +96,6 @@ class Photo {
     return userId == currentUserId;
   }
 
-  /// Helper: parsed DateTime (safe)
   DateTime? get createdDate {
     try {
       return DateTime.parse(createdAt);

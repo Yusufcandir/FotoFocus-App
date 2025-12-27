@@ -23,14 +23,14 @@ class ChallengeCard extends StatelessWidget {
     final imagePath = (challenge.coverUrl?.isNotEmpty ?? false)
         ? _fullImageUrl(challenge.coverUrl!)
         : null;
+    final desc = (challenge.description ?? "").trim();
 
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
-          "/challenge-detail", // ✅ MUST match main.dart route key
-          arguments:
-              challenge, // ✅ main.dart will read this and pass challengeId
+          "/challenge-detail",
+          arguments: challenge,
         );
       },
       child: ClipRRect(
@@ -47,8 +47,6 @@ class ChallengeCard extends StatelessWidget {
                     )
                   : _placeholder(),
             ),
-
-            // subtle dark gradient for readability
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -63,20 +61,37 @@ class ChallengeCard extends StatelessWidget {
                 ),
               ),
             ),
-
             Positioned(
               left: 12,
               right: 12,
               bottom: 12,
-              child: Text(
-                challenge.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    challenge.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (desc.isNotEmpty) const SizedBox(height: 4),
+                  if (desc.isNotEmpty)
+                    Text(
+                      desc,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 12,
+                        height: 1.2,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],

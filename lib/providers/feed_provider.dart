@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../data/models/post.dart';
 import '../data/services/feed_service.dart';
-import '../data/models/post.dart';
 
 class FeedProvider extends ChangeNotifier {
   FeedProvider({FeedService? service}) : _service = service ?? FeedService();
@@ -62,8 +61,8 @@ class FeedProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createPost({required String content, File? image}) async {
-    final p = await _service.createPost(content: content, image: image);
+  Future<void> createPost({required String text, File? image}) async {
+    final p = await _service.createPost(text: text, image: image);
     posts.insert(0, p);
     notifyListeners();
   }

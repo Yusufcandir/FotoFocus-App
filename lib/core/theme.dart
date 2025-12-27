@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colors inspired by your UI screenshots
   static const Color background = Color(0xFFF4F5F7);
   static const Color card = Colors.white;
   static const Color textDark = Color(0xFF111827);
@@ -15,7 +14,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: background,
-      fontFamily: null, // set to "Inter" if you add the font
+      fontFamily: null,
       colorScheme: ColorScheme.fromSeed(seedColor: purple1),
       textTheme: const TextTheme(
         headlineMedium: TextStyle(

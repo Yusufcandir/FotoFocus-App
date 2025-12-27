@@ -100,7 +100,6 @@ function publicUser(u) {
 
 
 // -------- AUTH --------
-// OPTIONAL: improve register to support confirmPassword coming from Flutter
 app.post("/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
@@ -114,7 +113,7 @@ app.post("/auth/login", async (req, res) => {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    // return only safe fields
+
     const safeUser = { id: user.id, email: user.email };
 
     const token = signToken(safeUser);
@@ -136,7 +135,7 @@ app.post("/auth/forgot-password", async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // Always respond OK (prevents account enumeration)
+    
     if (!user) {
       return res.json({ message: "If the email exists, we sent a reset instruction." });
     }
@@ -149,8 +148,7 @@ app.post("/auth/forgot-password", async (req, res) => {
       data: { tokenHash, userId: user.id, expiresAt },
     });
 
-    // TODO: send email here (nodemailer / resend / sendgrid)
-    // For now: return token only in development so you can test
+    // TODO: send email here (resend)
     const payload =
       process.env.NODE_ENV !== "production"
         ? { message: "Reset token created (DEV).", token }
@@ -223,7 +221,7 @@ app.post("/auth/register", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // store pending registration (you must have PendingRegistration model in prisma)
+  
     await prisma.pendingRegistration.upsert({
       where: { email },
       create: { email, passwordHash, codeHash, expiresAt, attempts: 0, lastSentAt: new Date() },
@@ -250,12 +248,12 @@ app.post("/auth/register/request", async (req, res) => {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    // optional: basic password rule
+ 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // block if already registered
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(409).json({ message: "Email already exists" });
 
@@ -386,7 +384,7 @@ app.get("/challenges/:id", async (req, res) => {
 });
 
 
-// create challenge (optional cover image: field name MUST be "cover")
+// create challenge 
 app.post("/challenges", auth, upload.single("cover"), async (req, res) => {
   try {
     const { title, description } = req.body || {};
@@ -442,7 +440,7 @@ app.delete("/challenges/:id", auth, async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    // ✅ Get photos first so we can delete local files safely (if any)
+
     const photos = await prisma.photo.findMany({
       where: { challengeId },
       select: { imageUrl: true },
@@ -547,7 +545,7 @@ app.get("/challenges/:id/photos", async (req, res) => {
       },
     });
 
-    // add avgRating + ratingCount fields for your Flutter model
+
     const mapped = photos.map((p) => {
       const ratingCount = p.ratings.length;
       const avgRating =
@@ -575,7 +573,7 @@ app.get("/challenges/:id/photos", async (req, res) => {
   }
 });
 
-// upload photo to challenge (field name MUST be "photo")
+// upload photo to challenge 
 app.post("/challenges/:id/photos", auth, upload.single("photo"), async (req, res) => {
   try {
     const challengeId = Number(req.params.id);
@@ -786,7 +784,7 @@ app.post("/photos/:id/comments", auth, async (req, res) => {
         select: { parentId: true },
       });
 
-      // 🔒 force 1-level nesting
+
       finalParentId = parent?.parentId ?? parentId;
     }
 
@@ -821,12 +819,12 @@ app.delete("/comments/:id", auth, async (req, res) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // 🔒 owner check
+    //  owner check
     if (comment.userId !== req.user.id) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    // delete replies first (1-level safe)
+  
     await prisma.comment.deleteMany({
       where: { parentId: commentId },
     });
@@ -919,7 +917,7 @@ app.get("/users/:id/stats", auth, async (req, res) => {
 
     const photoCount = await prisma.photo.count({ where: { userId } });
 
-    // challenge owner field: try creatorId then fallback to userId
+
     let challengeCount = 0;
     try {
       challengeCount = await prisma.challenge.count({ where: { creatorId: userId } });
@@ -927,7 +925,6 @@ app.get("/users/:id/stats", auth, async (req, res) => {
       challengeCount = await prisma.challenge.count({ where: { userId } });
     }
 
-    // follow counts (if your model exists)
     let followersCount = 0;
     let followingCount = 0;
     try {
@@ -935,7 +932,6 @@ app.get("/users/:id/stats", auth, async (req, res) => {
       followingCount = await prisma.follow.count({ where: { followerId: userId } });
     } catch (_) {}
 
-    // avg rating received (if your model exists)
     let avgRatingReceived = 0;
     let ratingCount = 0;
     try {
@@ -948,7 +944,7 @@ app.get("/users/:id/stats", auth, async (req, res) => {
       ratingCount = avgAgg?._count?.value ?? 0;
     } catch (_) {}
 
-    // isFollowing (optional)
+   
     let isFollowing = false;
     try {
       const meId = req.user.id;
@@ -1061,7 +1057,7 @@ app.get("/users/:id/mychallenges", async (req, res) => {
 });
 
 
-// ✅ GET my profile
+// GET my profile
 app.get("/me", auth, async (req, res) => {
   const me = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!me) return res.status(404).json({ message: "User not found" });
@@ -1106,7 +1102,7 @@ app.delete("/me", auth, async (req, res) => {
       });
       const photoIds = photosToDelete.map((p) => p.id);
 
-      // 3) delete ratings first (depend on photo/user)
+    
       await tx.rating.deleteMany({
         where: {
           OR: [
@@ -1116,7 +1112,7 @@ app.delete("/me", auth, async (req, res) => {
         },
       });
 
-      // 4) delete comments on photos we will delete
+ 
       if (photoIds.length > 0) {
         await tx.comment.deleteMany({
           where: { photoId: { in: photoIds } },
@@ -1138,13 +1134,13 @@ app.delete("/me", auth, async (req, res) => {
 
       // 6) delete photos
       if (photoIds.length > 0) {
-        // fetch imageUrls BEFORE deleting rows
+       
         const photosWithUrls = await tx.photo.findMany({
           where: { id: { in: photoIds } },
           select: { imageUrl: true },
         });
 
-        // Here you can add code to delete images from Cloudinary if needed
+        
         
 
         // delete photo rows
@@ -1204,7 +1200,7 @@ app.post("/me/avatar", auth, upload.single("avatar"), async (req, res) => {
 
 
 
-// ✅ follow
+//  follow
 app.post("/users/:id/follow", auth, async (req, res) => {
   const targetId = Number(req.params.id);
   if (!Number.isFinite(targetId)) return res.status(400).json({ message: "Invalid user id" });
@@ -1221,7 +1217,7 @@ app.post("/users/:id/follow", auth, async (req, res) => {
   }
 });
 
-// ✅ unfollow
+//  unfollow
 app.delete("/users/:id/follow", auth, async (req, res) => {
   const targetId = Number(req.params.id);
   if (!Number.isFinite(targetId)) return res.status(400).json({ message: "Invalid user id" });
@@ -1233,7 +1229,7 @@ app.delete("/users/:id/follow", auth, async (req, res) => {
   res.json({ success: true, following: false });
 });
 
-// ✅ followers list
+// followers list
 app.get("/users/:id/followers", optionalAuth, async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isFinite(userId)) return res.status(400).json({ message: "Invalid user id" });
@@ -1247,7 +1243,7 @@ app.get("/users/:id/followers", optionalAuth, async (req, res) => {
   res.json(rows.map(r => publicUser(r.follower)));
 });
 
-// ✅ following list
+//  following list
 app.get("/users/:id/following", optionalAuth, async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isFinite(userId)) return res.status(400).json({ message: "Invalid user id" });
@@ -1278,7 +1274,7 @@ app.get("/users/:id/isFollowing", auth, async (req, res) => {
 // =======================
 
 // GET feed posts (latest)
-// optional auth -> if logged in, returns likedByMe
+
 app.get("/posts", optionalAuth, async (req, res) => {
   try {
     const take = Math.min(Number(req.query.take || 20), 50);
@@ -1360,7 +1356,6 @@ app.post("/posts", auth, upload.single("image"), async (req, res) => {
 
 
 // DELETE post (owner)
-// DELETE post (owner)
 app.delete("/posts/:id", auth, async (req, res) => {
   try {
     const postId = Number(req.params.id);
@@ -1432,7 +1427,7 @@ app.post("/posts/:id/comments", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to add comment" });
   }
 });
-// ✅ delete a post comment
+//  delete a post comment
 app.delete("/posts/:postId/comments/:commentId", auth, async (req, res) => {
   const postId = Number(req.params.postId);
   const commentId = Number(req.params.commentId);
@@ -1521,7 +1516,7 @@ app.get("/me/stats", auth, async (req, res) => {
         followersCount = await prisma.follow.count({ where: { followingId: userId } });
         followingCount = await prisma.follow.count({ where: { followerId: userId } });
       } catch (_) {
-        // keep 0 if fields don't match
+     
       }
     }
 
@@ -1532,7 +1527,7 @@ app.get("/me/stats", auth, async (req, res) => {
     if (prisma.photoRating) {
       try {
         const avgAgg = await prisma.photoRating.aggregate({
-          where: { photo: { userId } }, // relation name might differ in your schema
+          where: { photo: { userId } }, 
           _avg: { value: true },
           _count: { value: true },
         });
@@ -1540,7 +1535,7 @@ app.get("/me/stats", auth, async (req, res) => {
         avgRatingReceived = avgAgg?._avg?.value ?? 0;
         ratingCount = avgAgg?._count?.value ?? 0;
       } catch (_) {
-        // keep 0 if relation/fields differ
+      
       }
     }
 
@@ -1633,29 +1628,33 @@ app.get("/me/challenges", auth, async (req, res) => {
 // MY POSTS
 app.get("/me/posts", auth, async (req, res) => {
   try {
-    const authorId = req.user.id;   // whose posts we show
-    const viewerId = req.user.id;   // who is viewing (me)
+    const authorId = req.user.id;
+    const viewerId = req.user.id;
 
     const posts = await prisma.post.findMany({
-      where: { userId: authorId }, // change to authorId if your schema uses that
+      where: { userId: authorId },
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        text: true,
+        imageUrl: true,
+        createdAt: true,
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
         _count: { select: { likes: true, comments: true } },
-        likes: { where: { userId: viewerId }, select: { id: true } }, // ✅ for isLiked
+        likes: { where: { userId: viewerId }, select: { id: true } },
       },
     });
 
     res.json(
       posts.map((p) => ({
         id: p.id,
-        content: p.content,
-        imageUrl: p.imageUrl,
+        text: p.text ?? "",        
+        imageUrl: p.imageUrl ?? null,
         createdAt: p.createdAt,
         user: p.user,
         likeCount: p._count.likes,
         commentCount: p._count.comments,
-        isLiked: p.likes.length > 0, // ✅
+        isLiked: p.likes.length > 0,
       }))
     );
   } catch (e) {
@@ -1667,33 +1666,33 @@ app.get("/me/posts", auth, async (req, res) => {
 
 app.get("/users/:id/posts", auth, async (req, res) => {
   try {
-    const authorId = Number(req.params.id); // whose posts we show
-    const viewerId = req.user.id;           // who is viewing (me)
-
-    if (!Number.isInteger(authorId) || authorId <= 0) {
-      return res.status(400).json({ message: "Invalid user id" });
-    }
+    const authorId = Number(req.params.id);
+    const viewerId = req.user.id;
 
     const posts = await prisma.post.findMany({
-      where: { userId: authorId }, // change to authorId if your schema uses that
+      where: { userId: authorId },
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        text: true,
+        imageUrl: true,
+        createdAt: true,
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
         _count: { select: { likes: true, comments: true } },
-        likes: { where: { userId: viewerId }, select: { id: true } }, // ✅ for isLiked
+        likes: { where: { userId: viewerId }, select: { id: true } },
       },
     });
 
     res.json(
       posts.map((p) => ({
         id: p.id,
-        content: p.content,
-        imageUrl: p.imageUrl,
+        text: p.text ?? "",
+        imageUrl: p.imageUrl ?? null,
         createdAt: p.createdAt,
         user: p.user,
         likeCount: p._count.likes,
         commentCount: p._count.comments,
-        isLiked: p.likes.length > 0, // ✅
+        isLiked: p.likes.length > 0,
       }))
     );
   } catch (e) {
@@ -1701,6 +1700,7 @@ app.get("/users/:id/posts", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to load posts" });
   }
 });
+
 
 
 // LIKED POSTS (ME)
@@ -1720,13 +1720,13 @@ app.get("/me/liked-posts", auth, async (req, res) => {
     res.json(
       liked.map((p) => ({
         id: p.id,
-        content: p.content,
+        text: p.text,
         imageUrl: p.imageUrl,
         createdAt: p.createdAt,
         user: p.user,
         likeCount: p._count.likes,
         commentCount: p._count.comments,
-        isLiked: true, // ✅ important
+        isLiked: true, //
       }))
     );
   } catch (e) {
@@ -1755,13 +1755,13 @@ app.get("/users/:id/liked-posts", auth, async (req, res) => {
     res.json(
       liked.map((p) => ({
         id: p.id,
-        content: p.content,
+        text: p.text,
         imageUrl: p.imageUrl,
         createdAt: p.createdAt,
         user: p.user,
         likeCount: p._count.likes,
         commentCount: p._count.comments,
-        isLiked: true, // ✅ important
+        isLiked: true, //
       }))
     );
   } catch (e) {
@@ -1771,7 +1771,6 @@ app.get("/users/:id/liked-posts", auth, async (req, res) => {
 });
 
 
-// LESSONS
 // LESSONS
 app.get("/lessons", async (req, res) => {
   const lessons = await prisma.lesson.findMany({ orderBy: { order: "asc" } });
@@ -2087,26 +2086,7 @@ Compare sharpness and noise.`,
   console.log("✅ Seeded default lessons");
 }
 
-// mail
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  // helps avoid ::1 / IPv6 weirdness in some environments
-  family: 4,
-  // optional safety
-  connectionTimeout: 10_000,
-  greetingTimeout: 10_000,
-  socketTimeout: 10_000,
-});
 
-
-console.log("SMTP_HOST:", process.env.SMTP_HOST);
-console.log("SMTP_PORT:", process.env.SMTP_PORT);
 
 // email.js
 export async function sendVerificationEmail(to, code) {

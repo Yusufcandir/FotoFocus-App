@@ -98,6 +98,10 @@ class ProfileService {
     await _api.delete("${AppConstants.photos}/$photoId", auth: true);
   }
 
+  Future<void> deletePost(int postId) async {
+    await _api.delete("${AppConstants.posts}/$postId", auth: true);
+  }
+
   // ---------- FOLLOW ----------
   Future<bool> isFollowing(int userId) async {
     final res = await _api.get("/users/$userId/isFollowing", auth: true);
@@ -140,8 +144,14 @@ class ProfileService {
         : <String>["/users/$userId/posts"];
 
     final res = await _getWithFallback(paths, auth: true);
-    final List list =
-        (res is Map && res["posts"] is List) ? res["posts"] : (res as List);
+
+    final List list = (res is List)
+        ? res
+        : (res is Map && res["posts"] is List)
+            ? (res["posts"] as List)
+            : (res is Map && res["data"] is List)
+                ? (res["data"] as List)
+                : <dynamic>[];
 
     return list
         .map((e) => FeedPost.fromJson((e as Map).cast<String, dynamic>()))
