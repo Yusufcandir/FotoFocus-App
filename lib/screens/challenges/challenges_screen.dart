@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/challenge_provider.dart';
 import '../../data/models/challenge.dart';
 import '../../core/constants.dart';
+import 'create_challenge_screen.dart';
 
 class ChallengesScreen extends StatefulWidget {
   const ChallengesScreen({super.key});
@@ -13,12 +14,21 @@ class ChallengesScreen extends StatefulWidget {
 }
 
 class _ChallengesScreenState extends State<ChallengesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = "";
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       context.read<ChallengeProvider>().loadChallenges();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   String _resolveImageUrl(String? raw) {
@@ -32,6 +42,11 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
   Widget build(BuildContext context) {
     final p = context.watch<ChallengeProvider>();
 
+    final String q = _query.trim().toLowerCase();
+    final List<Challenge> filtered = q.isEmpty
+        ? p.challenges
+        : p.challenges.where((c) => c.title.toLowerCase().contains(q)).toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
       body: SafeArea(
@@ -40,17 +55,46 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
             children: [
-              // Header row (NO top-right buttons anymore)
               Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: Row(
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       "Weekly Challenges",
                       style:
                           TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
                     ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.add_rounded),
+                      onPressed: () {
+                        Navigator.pushNamed(context, "/challenge-create");
+                      },
+                    ),
                   ],
+                ),
+              ),
+
+              // ✅ Search bar (added)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: "Search challenges...",
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
+                  ),
                 ),
               ),
 
@@ -74,11 +118,16 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                   padding: EdgeInsets.only(top: 30),
                   child: Center(child: Text("No challenges yet")),
                 )
+              else if (filtered.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 30),
+                  child: Center(child: Text("No results")),
+                )
               else
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: p.challenges.length,
+                  itemCount: filtered.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 14,
@@ -86,7 +135,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                     childAspectRatio: 1.25,
                   ),
                   itemBuilder: (context, i) {
-                    final Challenge c = p.challenges[i];
+                    final Challenge c = filtered[i];
                     final cover = _resolveImageUrl(c.coverUrl);
 
                     return InkWell(

@@ -28,6 +28,7 @@ dependencies:
     path: packages/saver_gallery_fixed
   permission_handler: ^11.3.1
   device_info_plus: ^10.1.2
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -36,6 +37,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/logo.png
 
   # If you have Inter font locally, add it here.
   # fonts:

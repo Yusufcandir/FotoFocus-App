@@ -27,6 +27,7 @@ import 'screens/photos/photo_detail_screen.dart';
 import 'screens/feed/post_detail_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
+import 'screens/challenges/create_challenge_screen.dart';
 
 void main() {
   runApp(const FotoFocusApp());
@@ -58,6 +59,7 @@ class FotoFocusApp extends StatelessWidget {
           "/register": (_) => const RegisterScreen(),
           "/forgot-password": (_) => const ForgotPasswordScreen(),
           "/reset-password": (_) => const ResetPasswordScreen(),
+          "/challenge-create": (_) => const CreateChallengeScreen(),
           "/home": (_) => const HomeScreen(),
           "/profile": (_) => const ProfileScreen(),
           "/settings": (_) => const SettingsScreen(),
