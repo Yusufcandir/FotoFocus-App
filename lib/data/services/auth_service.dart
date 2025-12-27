@@ -105,7 +105,32 @@ class AuthService {
   /// GET /me (protected) -> returns current user from token
   Future<User> me() async {
     final data = await _api.get("/me", auth: true);
-    return User.fromJson(data["user"]);
+
+    // Backend responses can vary:
+    // - { user: {...} }
+    // - { data: {...} }
+    // - { data: { user: {...} } }
+    // - directly {...}
+    if (data is Map) {
+      dynamic payload = data;
+
+      if (data["user"] is Map) {
+        payload = data["user"];
+      } else if (data["data"] is Map) {
+        final d = data["data"] as Map;
+        if (d["user"] is Map) {
+          payload = d["user"];
+        } else {
+          payload = d;
+        }
+      }
+
+      if (payload is Map) {
+        return User.fromJson(Map<String, dynamic>.from(payload));
+      }
+    }
+
+    throw Exception("Invalid /me response (expected JSON object)");
   }
 
   Future<void> deleteMyAccount() async {

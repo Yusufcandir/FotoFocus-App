@@ -4,6 +4,12 @@ publish_to: "none"
 
 version: 1.0.0+1
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+
 
   
 environment:
@@ -34,11 +40,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
+    - assets/icon/icon.png
 
   # If you have Inter font locally, add it here.
   # fonts:

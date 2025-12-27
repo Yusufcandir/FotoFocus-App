@@ -40,7 +40,7 @@ class FotoFocusApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => LessonProvider()),
         ChangeNotifierProvider(create: (_) => ChallengeProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),

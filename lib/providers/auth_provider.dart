@@ -53,6 +53,7 @@ class AuthProvider extends ChangeNotifier {
         _error = null;
         return;
       }
+
       final me = await _authService.me();
       _user = me;
       _error = null;
@@ -69,10 +70,14 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final res = await _authService.login(email: email, password: password);
+
+      // AuthService already saved the token into TokenStorage
       _user = res.user;
       _error = null;
+
       return true;
     } catch (e) {
+      _user = null;
       _error = e.toString();
       return false;
     } finally {
@@ -109,10 +114,14 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final res = await _authService.verifyRegister(email: email, code: code);
+
+      // AuthService already saved the token into TokenStorage
       _user = res.user;
       _error = null;
+
       return true;
     } catch (e) {
+      _user = null;
       _error = e.toString();
       return false;
     } finally {
@@ -149,8 +158,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.logout();
+    await _authService.logout(); // clears token from TokenStorage
     _user = null;
+    _error = null;
     notifyListeners();
   }
 
